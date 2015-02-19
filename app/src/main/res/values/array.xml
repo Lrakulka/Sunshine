@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="fake_data">
+        <item>Today - Sunny - 88/63</item>
+        <item>Tomorrow - Foggy - 70/30</item>
+        <item>Weds - Cloudy - 70/60</item>
+        <item>Thurs - Rain - 60/30</item>
+        <item>Friday - Sunny - 70/65</item>
+        <item>Saturday - Sunny - 80/70</item>
+        <item>Sunday - Rain - 60/50</item>
+    </string-array>
+</resources>
