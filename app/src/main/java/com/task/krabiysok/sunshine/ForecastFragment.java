@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 
@@ -157,11 +158,13 @@ public class ForecastFragment extends Fragment {
                     }
                 }
             }try {
-                return JSONData.getWeatherDataFromJson(forecastJsonStr).dayInfoArrayItems();
+                if (forecastJsonStr != null) {
+                    return JSONData.getWeatherDataFromJson(forecastJsonStr).dayInfoArrayItems();
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
-                return null;
             }
+            return null;
         }
 
         @Override
@@ -170,6 +173,10 @@ public class ForecastFragment extends Fragment {
             if (items != null && !items.getText().isEmpty()) {
                 adapter.clear();
                 adapter.addAll(items.getText().toArray(), items.getIcon().toArray());
+            } else {
+                Toast.makeText(getActivity(),
+                        getResources().getString(R.string.no_internet_conection),
+                        Toast.LENGTH_LONG).show();
             }
         }
     }
