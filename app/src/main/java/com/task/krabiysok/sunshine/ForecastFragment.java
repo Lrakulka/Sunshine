@@ -5,9 +5,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,33 +37,6 @@ public class ForecastFragment extends Fragment {
     private static final int[] LIST_VIEWS = {R.id.list_item_forecast_textview, R.id.weather_icon};
     private static final String[] PARAMS = {LIST_ITEM_TEXT, LIST_ITEM_ICON};
     private MySimpleAdapter adapter;
-    ActionMode actionMode;
-    private ActionMode.Callback callback = new ActionMode.Callback() {
-
-        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            mode.getMenuInflater().inflate(R.menu.forecastfragment, menu);
-            return true;
-        }
-
-        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return false;
-        }
-
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            int id = item.getItemId();
-            if (id == R.id.action_refresh) {
-                FetchWeatherTask fetchWeatherTask = new FetchWeatherTask();
-                fetchWeatherTask.execute("696877");
-                return true;
-            }
-            return false;
-        }
-
-        public void onDestroyActionMode(ActionMode mode) {
-            actionMode = null;
-        }
-
-    };
 
     public ForecastFragment() {
     }
@@ -71,14 +44,12 @@ public class ForecastFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setHasOptionsMenu(true);
-        actionMode = getActivity().startActionMode(callback);
+        setHasOptionsMenu(true);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        actionMode.finish();
     }
 
     @Override
@@ -95,7 +66,7 @@ public class ForecastFragment extends Fragment {
         listView.setAdapter(adapter);
         return rootView;
     }
-/*
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -110,7 +81,7 @@ public class ForecastFragment extends Fragment {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }*/
+    }
 
     public class FetchWeatherTask extends AsyncTask<String, Void, ItemsData> {
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
