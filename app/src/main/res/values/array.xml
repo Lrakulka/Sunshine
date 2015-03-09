@@ -9,4 +9,12 @@
         <item>Saturday - Sunny - 80/70</item>
         <item>Sunday - Rain - 60/50</item>
     </string-array>
+    <string-array name="pref_temperature_systems_values">
+        <item>metric</item>
+        <item>imperial</item>
+    </string-array>
+    <string-array name="pref_temperature_systems_names">
+        <item>Metric</item>
+        <item>Imperial</item>
+    </string-array>
 </resources>

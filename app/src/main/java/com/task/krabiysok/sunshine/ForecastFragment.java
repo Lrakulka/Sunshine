@@ -1,8 +1,11 @@
 package com.task.krabiysok.sunshine;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -24,6 +28,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import json.data.ItemsData;
@@ -38,6 +43,7 @@ public class ForecastFragment extends Fragment {
     private static final int[] LIST_VIEWS = {R.id.list_item_forecast_textview, R.id.weather_icon};
     private static final String[] PARAMS = {LIST_ITEM_TEXT, LIST_ITEM_ICON};
     private MySimpleAdapter adapter;
+    private android.support.v7.widget.ShareActionProvider mShareActionProvider;
 
     public ForecastFragment() {
     }
@@ -57,6 +63,7 @@ public class ForecastFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
         ArrayList<String> weekForecast = new ArrayList<>(Arrays.asList(getResources().
                 getStringArray(R.array.fake_data)));
 
@@ -65,20 +72,53 @@ public class ForecastFragment extends Fragment {
         adapter.addAll(weekForecast.toArray());
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getActivity(), DetailActivity.class).
+                        putExtra(Intent.EXTRA_TEXT,
+                                (String) ((HashMap<String, Object>) adapter.
+                                        getItem(position)).get(LIST_ITEM_TEXT));
+                startActivity(intent);
+            }
+        });
         return rootView;
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.forecastfragment, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    public void doShare(Intent shareIntent) {
+        // When you want to share set the share intent.
+        mShareActionProvider.setShareIntent(shareIntent);
+    }
+
+    private void updateWeather() {
+        FetchWeatherTask fetchWeatherTask = new FetchWeatherTask();
+        SharedPreferences sharedPref = PreferenceManager.
+                getDefaultSharedPreferences(getActivity());
+        String location = sharedPref.getString(getResources().
+                        getString(R.string.pref_location_key), getResources().
+                        getString(R.string.pref_location_default));
+        String tempSystem = sharedPref.getString(getResources().
+                getString(R.string.pref_temperature_system_key), getResources().
+                getString(R.string.pref_temperature_system_default));
+        fetchWeatherTask.execute(location, tempSystem);
     }
 
     public boolean onOptionsItemSelected (MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            FetchWeatherTask fetchWeatherTask = new FetchWeatherTask();
-            fetchWeatherTask.execute("696877");
+            updateWeather();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -90,16 +130,15 @@ public class ForecastFragment extends Fragment {
         @Override
         protected ItemsData doInBackground(String... params) {
             final String BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?";
-            final String PARAM_IDENT = "id";
+            final String PARAM_IDENT = "q";
             final String PARAM_MODE = "mode";
             final String PARAM_UNITS = "units";
             final String PARAM_CNT = "cnt";
             String mode = "json";
-            String units = "metric";
             String cnt = getResources().getString(R.string.cnt_days);
             Uri.Builder uri = Uri.parse(BASE_URL).buildUpon().appendQueryParameter(PARAM_IDENT, params[0]).
                     appendQueryParameter(PARAM_MODE, mode).
-                    appendQueryParameter(PARAM_UNITS, units).appendQueryParameter(PARAM_CNT, cnt);
+                    appendQueryParameter(PARAM_UNITS, params[1]).appendQueryParameter(PARAM_CNT, cnt);
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
@@ -158,9 +197,11 @@ public class ForecastFragment extends Fragment {
                     }
                 }
             }try {
-                if (forecastJsonStr != null) {
-                    return JSONData.getWeatherDataFromJson(forecastJsonStr).dayInfoArrayItems();
-                }
+                if (forecastJsonStr == null) {
+                    return null;
+                } else if (forecastJsonStr.contains("\"cod\":\"404\"")) {
+                            return new ItemsData();
+                } else return JSONData.getWeatherDataFromJson(forecastJsonStr).dayInfoArrayItems();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -170,13 +211,21 @@ public class ForecastFragment extends Fragment {
         @Override
         protected void onPostExecute(ItemsData items) {
             super.onPostExecute(items);
-            if (items != null && !items.getText().isEmpty()) {
-                adapter.clear();
-                adapter.addAll(items.getText().toArray(), items.getIcon().toArray());
+            if (items != null) {
+                if (!items.getText().isEmpty()) {
+                    adapter.clear();
+                    adapter.addAll(items.getText().toArray(), items.getIcon().toArray());
+                } else if (isAdded()) {
+                            Toast.makeText(getActivity(),
+                                getResources().getString(R.string.wrong_settings),
+                                Toast.LENGTH_LONG).show();
+                        } else Log.e("ERROR", "Fragment not attached to Activity");
             } else {
-                Toast.makeText(getActivity(),
-                        getResources().getString(R.string.no_internet_conection),
-                        Toast.LENGTH_LONG).show();
+                if (isAdded()) {
+                    Toast.makeText(getActivity(),
+                            getResources().getString(R.string.no_internet_conection),
+                            Toast.LENGTH_LONG).show();
+                } else Log.e("ERROR", "Fragment not attached to Activity");
             }
         }
     }
