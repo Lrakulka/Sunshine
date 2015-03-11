@@ -3,7 +3,9 @@ package json.data;
 import com.task.krabiysok.sunshine.R;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by KrabiySok on 2/24/2015.
@@ -32,8 +34,15 @@ public class ItemsData {
         put("50n", R.drawable.d50n);
     }};
 
-    public ArrayList<Integer> getIcon() {return itemsIcon;}
-    public ArrayList<String> getText() {return itemsText;}
+    public List<Integer> getIcon() {return itemsIcon;}
+
+    public List<String> getText() {
+        if (itemsIcon == null) {
+            return Collections.emptyList();
+        }
+        return itemsText;
+    }
+
     public void addData(String text, String icon) {
         if (itemsText == null) itemsText = new ArrayList<>();
         itemsText.add(text);
