@@ -15,10 +15,11 @@
     <!-- Key name for storing location in SharedPreferences [CHAR LIMIT=NONE] -->
     <string name="pref_location_key" translatable="false">location</string>
     <!-- Default postal code for location preference [CHAR LIMIT=NONE] -->
-    <string name="pref_location_default" translatable="false">03056</string>
+    <string name="pref_location_default" translatable="false">94043</string>
 
     <string name="pref_temperature_system_key" translatable="false">temperature system</string>
     <string name="pref_temperature_system_default" translatable="false">metric</string>
+    <string name="pref_temperature_system_imperial" translatable="false">imperial</string>
     <string name="pref_temperature_system_label" translatable="false">Temperature System</string>
     <string name="user_location">User Position</string>
 </resources>
